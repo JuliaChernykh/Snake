@@ -33,7 +33,7 @@ long randNumber;
 //Настройки
 uint8_t size = 1;
 uint8_t difficulty = 0;
-uint8_t contrast = 70;
+uint8_t contrast = 60;
 
 //Опции в меню
 uint8_t chosen_option = 0;
@@ -261,6 +261,11 @@ if(section == 0)
       display.setTextColor(BLACK, WHITE);
     }
     display.print(">Difficulty");
+//    display.setCursor(0, 65);
+//    if(difficulty==0)
+//    display.print("OFF");
+//    else 
+//    display.print("ON");
     display.setCursor(0, 35);
     
      if (chosen_option==3) 
@@ -272,6 +277,8 @@ if(section == 0)
       display.setTextColor(BLACK, WHITE);
     }
     display.print(">Contrast");
+//    display.setCursor(0, 70);
+//    display.print(contrast);
     display.display();
 
               if(digitalRead(RIGHT)==LOW||digitalRead(LEFT)==LOW)
@@ -308,20 +315,32 @@ if(section == 0)
                   if(digitalRead(RIGHT)==LOW)
                   {
                      difficulty = 1;
-                     display.setCursor(70, 25);
-                     display.print("ON");
-                     display.display();
+ //                    display.setCursor(70, 25);
+//                     display.print("ON");
+//                     display.display();
                   }
                      
                 else if(digitalRead(LEFT)==LOW)
                 {
                      difficulty = 0;
-                     display.setCursor(65, 35);
-                     display.print("OFF");
-                     delay(300);
-                      display.display();
+//                     display.setCursor(65, 25);
+//                     display.print("OFF");
+//                    
+//                      display.display();
                 }
                   EEPROM.put(9, difficulty);
+                  if(difficulty==0)
+                  {
+                    display.setCursor(65, 25);
+                    display.print("OFF");
+                     display.display();
+                  }
+                  else 
+                  {
+                    display.setCursor(70, 25);
+                    display.print("ON");
+                     display.display();
+                  }
             }
             else if(chosen_option == 3)
                 {
@@ -339,10 +358,12 @@ if(section == 0)
                      if(contrast == 50)
                     contrast = 70;
                     else contrast -= 2;
-                    display.setContrast(contrast);
-
-                    EEPROM.put(18, contrast);
                 }
+                display.setContrast(contrast);
+                EEPROM.put(18, contrast);
+                display.setCursor(65, 35);
+                display.print(contrast);
+                display.display();
             }
         }
         //Рекорды
@@ -520,8 +541,8 @@ void drawsnake()
     drawobstacles();
   
   display.fillRect(fruitx,fruitxy,3*size,3*size,BLACK);  
-  display.drawCircle(x[0],y[0],1,BLACK);  
-  display.drawCircle(x[slength],y[slength],1,WHITE);
+  display.drawCircle(x[0],y[0],1*size,BLACK);  
+  display.drawCircle(x[slength],y[slength],1*size,WHITE);
   display.display(); 
 }
 
