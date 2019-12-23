@@ -27,10 +27,13 @@ int l, r, u, d, p;
 unsigned long time = 280, beeptime = 50;
 int score = 0,flag = 0;
 
+long randNumber;
+
 
 //Настройки
-uint8_t size = 2;
+uint8_t size = 1;
 uint8_t difficulty = 0;
+uint8_t contrast = 70;
 
 //Опции в меню
 uint8_t chosen_option = 0;
@@ -60,7 +63,7 @@ void(*reset) (void) = 0;
 //Вввод настроек из памяти
     void savingsettings()
     {
-      size = 2;
+      size = 1;
       difficulty = 0;
 
       Top1 = "ZZZ";
@@ -120,11 +123,11 @@ int showmenu()
 //Выбираем опцию в меню
     if(digitalRead(UP)==LOW)
     if(chosen_option == 0)
-        chosen_option = 2;
+        chosen_option = 3;
      else chosen_option -= 1;
 
      if(digitalRead(DOWN)==LOW)
-         if(chosen_option == 2)
+         if(chosen_option == 3)
             chosen_option = 0;
          else chosen_option += 1;
       display.clearDisplay();
@@ -169,38 +172,61 @@ if(section == 0)
       display.setTextColor(BLACK, WHITE);
     }
     display.print(">Settings");
+     display.setCursor(0, 45);
+//    if (chosen_option==3) 
+//    { 
+//      display.setTextColor(WHITE, BLACK);
+//    }
+//    else 
+//    {
+//      display.setTextColor(BLACK, WHITE);
+//    }
+//    display.print(">Contrast");
     display.display();
-              if(digitalRead(RIGHT)==LOW)
-                //START
-                if(chosen_option == 0)
-                {
-                  display.clearDisplay();
-                  loopgame();
-                }
-                //RECORDS
-                else if(chosen_option == 1)
-                {
-                  display.clearDisplay();
-                  section = 2;
-                  chosen_option = 0;
-                  delay(100);
-                }
-                //SETTINGS
-                else if(chosen_option == 2)
-                {
-                  display.clearDisplay();
-                  section = 1;
-                  chosen_option = 0;
-                  delay(100);
-                }
     
-        }
-        else if(section == 1)
-        {
+    if(digitalRead(RIGHT)==LOW)
+    //START
+    if(chosen_option == 0)
+    {
+       display.clearDisplay();
+       loopgame();
+    }
+    //RECORDS
+    else if(chosen_option == 1)
+    {
+       display.clearDisplay();
+       section = 2;
+       chosen_option = 0;
+       delay(100);
+    }
+    //SETTINGS
+    else if(chosen_option == 2)
+    {
+       display.clearDisplay();
+       section = 1;
+       chosen_option = 0;
+       delay(100);
+    }
+//    //EXIT
+//     else if(chosen_option == 3)
+//    {
+//       display.clearDisplay();
+//
+//       display.setCursor(0, 0);
+//       display.print("Goodbye!");
+//       display.display();
+//       delay(1000);
+//       display.clearDisplay();
+//       display.display();
+//       //LCD.enableSleep();
+//    }    
+}
+    else if(section == 1)
+    {
     display.setTextSize(1);
     display.clearDisplay();
     display.setTextColor(BLACK, WHITE);
-    display.setCursor(0, 15);
+    display.setCursor(0, 5);
     
     
     if (chosen_option==0) 
@@ -212,7 +238,7 @@ if(section == 0)
       display.setTextColor(BLACK, WHITE);
     }
     display.print(">Back");
-    display.setCursor(0, 25);
+    display.setCursor(0, 15);
     
     
     if (chosen_option==1) 
@@ -224,7 +250,7 @@ if(section == 0)
       display.setTextColor(BLACK, WHITE);
     }
     display.print(">Size");
-    display.setCursor(0, 35);
+    display.setCursor(0, 25);
     
     if (chosen_option==2) 
     { 
@@ -235,6 +261,17 @@ if(section == 0)
       display.setTextColor(BLACK, WHITE);
     }
     display.print(">Difficulty");
+    display.setCursor(0, 35);
+    
+     if (chosen_option==3) 
+    { 
+      display.setTextColor(WHITE, BLACK);
+    }
+    else 
+    {
+      display.setTextColor(BLACK, WHITE);
+    }
+    display.print(">Contrast");
     display.display();
 
               if(digitalRead(RIGHT)==LOW||digitalRead(LEFT)==LOW)
@@ -260,6 +297,9 @@ if(section == 0)
                     size = 3;
                   else size--;
                   EEPROM.put(0, size);
+                  display.setCursor(70, 15);
+                     display.print(size);
+                     display.display();
                 }
                 else if(chosen_option == 2)
                 {
@@ -268,7 +308,7 @@ if(section == 0)
                   if(digitalRead(RIGHT)==LOW)
                   {
                      difficulty = 1;
-                     display.setCursor(70, 35);
+                     display.setCursor(70, 25);
                      display.print("ON");
                      display.display();
                   }
@@ -282,6 +322,27 @@ if(section == 0)
                       display.display();
                 }
                   EEPROM.put(9, difficulty);
+            }
+            else if(chosen_option == 3)
+                {
+                  
+                  //Включаем или выключаем препятствия в игре
+                  if(digitalRead(RIGHT)==LOW)
+                  {
+                     if(contrast == 70)
+                    contrast = 50;
+                    else contrast += 2;
+                  }
+                     
+                else if(digitalRead(LEFT)==LOW)
+                {
+                     if(contrast == 50)
+                    contrast = 70;
+                    else contrast -= 2;
+                    display.setContrast(contrast);
+
+                    EEPROM.put(18, contrast);
+                }
             }
         }
         //Рекорды
@@ -337,6 +398,8 @@ void setup() {
   digitalWrite(DOWN, HIGH);
   pinMode(LEFT, INPUT_PULLUP);
   digitalWrite(LEFT, HIGH);
+
+  randomSeed(analogRead(0));
 
   display.begin();
   display.setContrast(60);
@@ -441,10 +504,22 @@ void drawobstacles()
 //Рисуем змейку
 void drawsnake()  
 {
+//  if(size == 3)
+//       {
+//        
+//        for (uint8_t _i = 0; _i < size; ++_i)
+//          for (uint8_t _j = 0; _j < size; ++_j)
+//              display.drawPixel(size*i+_i,size*j+_j,WHITE);
+//       }
+//       else {
+//        for (uint8_t _i = 0; _i < size; ++_i)
+//          for (uint8_t _j = 0; _j < size; ++_j)
+//              display.drawPixel(size*j+_j,size*i+_i,WHITE);
+//       }
   if(difficulty==1)
     drawobstacles();
   
-  display.fillRect(fruitx,fruitxy,3,3,BLACK);  
+  display.fillRect(fruitx,fruitxy,3*size,3*size,BLACK);  
   display.drawCircle(x[0],y[0],1,BLACK);  
   display.drawCircle(x[slength],y[slength],1,WHITE);
   display.display(); 
@@ -481,6 +556,8 @@ void beep (int freq,long tb)
 //Проверяем, съела ли змейка фрукт
 void checkfruit()   
 {
+  if(size==1)
+  {
   if(x[0]==fruitx or x[0]==(fruitx+1) or x[0]==(fruitx+2) or x[0]==(fruitx-1))  
   {
     if(y[0]==fruitxy or y[0]==(fruitxy+1) or y[0]==(fruitxy+2) or y[0]==(fruitxy-1))
@@ -489,14 +566,51 @@ void checkfruit()
       slength+=1;
       if(time>=90)
       {time-=20;}      
-      display.fillRect(fruitx,fruitxy,3,3,WHITE);          
+      display.fillRect(fruitx,fruitxy,3*size,3*size,WHITE);          
       display.display();            
       beep(35,beeptime);          
       fruitx=random(1,80);            
       fruitxy=random(1,40);
     }
   }
-}        
+  }   
+  if(size==2)
+  {
+  if(x[0]==fruitx or x[0]==(fruitx+1) or x[0]==(fruitx+2) or x[0]==(fruitx+3) or x[0]==(fruitx+4) or x[0]==(fruitx-1))  
+  {
+    if(y[0]==fruitxy or y[0]==(fruitxy+1) or y[0]==(fruitxy+2) or y[0]==(fruitxy+3) or y[0]==(fruitxy+4) or y[0]==(fruitxy-1))
+    {
+      score+=1;                
+      slength+=1;
+      if(time>=90)
+      {time-=20;}      
+      display.fillRect(fruitx,fruitxy,3*size,3*size,WHITE);          
+      display.display();            
+      beep(35,beeptime);          
+      fruitx=random(1,80);            
+      fruitxy=random(1,40);
+    }
+  }
+  }  
+  if(size==3)
+  {
+  if(x[0]==fruitx or x[0]==(fruitx+1) or x[0]==(fruitx+2) or x[0]==(fruitx+3) or x[0]==(fruitx+4) or x[0]==(fruitx+5) or x[0]==(fruitx+6) or x[0]==(fruitx+7) or x[0]==(fruitx-1))  
+  {
+    if(y[0]==fruitxy or y[0]==(fruitxy+1) or y[0]==(fruitxy+2) or y[0]==(fruitxy+3) or y[0]==(fruitxy+4) or y[0]==(fruitxy+5) or y[0]==(fruitxy+6) or y[0]==(fruitxy+7) or y[0]==(fruitxy-1))
+    {
+      score+=1;                
+      slength+=1;
+      if(time>=90)
+      {time-=20;}      
+      display.fillRect(fruitx,fruitxy,3*size,3*size,WHITE);          
+      display.display();            
+      beep(35,beeptime);          
+      fruitx=random(1,80);            
+      fruitxy=random(1,40);
+    }
+  }
+  }    
+}     
 
 //Перемещаем змейку
 void movesnake()
